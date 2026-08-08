@@ -4,14 +4,12 @@ using VehicleServiceMonitoringSystem.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC
+
 builder.Services.AddControllersWithViews();
 
-// Repositories (in-memory, singleton so data survives across requests)
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IServiceJobRepository, ServiceJobRepository>();
 
-// Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
