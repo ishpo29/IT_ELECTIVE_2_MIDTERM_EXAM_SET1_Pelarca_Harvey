@@ -1,0 +1,26 @@
+@model ServiceStatus
+@{
+    string cssClass;
+    string label;
+
+    switch (Model)
+    {
+        case ServiceStatus.Waiting:
+            cssClass = "status-waiting";
+            label = "Waiting";
+            break;
+        case ServiceStatus.InService:
+            cssClass = "status-inservice";
+            label = "In Service";
+            break;
+        case ServiceStatus.ReadyForRelease:
+            cssClass = "status-ready";
+            label = "Ready for Release";
+            break;
+        default:
+            cssClass = "status-released";
+            label = "Released";
+            break;
+    }
+}
+<span class="status-badge @cssClass">@label</span>

@@ -1,0 +1,132 @@
+@model List<ServiceJob>
+@{
+    ViewData["Title"] = "Service Monitoring";
+    var keyword = ViewData["Keyword"] as string;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div class="page-header">
+        <h1>Service Monitoring</h1>
+        <p>Monitor customer vehicles from check-in to release.</p>
+    </div>
+    <a asp-controller="ServiceJob" asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Register Vehicle
+    </a>
+</div>
+
+<div class="section-card mb-4">
+    <form asp-controller="ServiceJob" asp-action="Index" method="get" class="row g-2 align-items-center">
+        <div class="col-12 col-md">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" name="keyword" value="@keyword" class="form-control"
+                       placeholder="Search service number, customer, plate number, or vehicle..." />
+            </div>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+        </div>
+        <div class="col-auto">
+            <a asp-controller="ServiceJob" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg"></i> Clear
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="section-card">
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-car-front"></i></div>
+            <h3>No Service Jobs Found</h3>
+            <p>There are currently no vehicles being monitored.</p>
+            <a asp-controller="ServiceJob" asp-action="Create" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-lg"></i> Register Vehicle
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Desktop / tablet table -->
+        <div class="table-responsive d-none d-md-block">
+            <table class="table ac-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Service #</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Plate #</th>
+                        <th>Service Type</th>
+                        <th>Bay</th>
+                        <th>Check-in</th>
+                        <th>Release</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model)
+                    {
+                        <tr>
+                            <td class="text-service-number">@job.ServiceNumber</td>
+                            <td>@job.CustomerName</td>
+                            <td>@job.VehicleMake @job.VehicleModel</td>
+                            <td>@job.PlateNumber</td>
+                            <td>@job.ServiceType</td>
+                            <td>@job.ServiceBay</td>
+                            <td>@job.CheckInDateTime.ToString("MMM d, h:mm tt")</td>
+                            <td>@(job.ActualReleaseDateTime?.ToString("MMM d, h:mm tt") ?? "—")</td>
+                            <td>@await Html.PartialAsync("_StatusBadge", job.Status)</td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" asp-controller="ServiceJob" asp-action="Details" asp-route-id="@job.Id"><i class="bi bi-eye me-2"></i>View</a></li>
+                                        <li><a class="dropdown-item" asp-controller="ServiceJob" asp-action="Edit" asp-route-id="@job.Id"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                        @if (job.Status != ServiceStatus.Released)
+                                        {
+                                            <li><a class="dropdown-item" asp-controller="ServiceJob" asp-action="Release" asp-route-id="@job.Id"><i class="bi bi-box-arrow-right me-2"></i>Release</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile cards -->
+        <div class="d-md-none">
+            @foreach (var job in Model)
+            {
+                <div class="job-card">
+                    <div class="job-card-header">
+                        <div>
+                            <div class="job-number">@job.ServiceNumber</div>
+                            <div class="job-customer">@job.CustomerName</div>
+                        </div>
+                        @await Html.PartialAsync("_StatusBadge", job.Status)
+                    </div>
+                    <div class="job-vehicle">@job.VehicleMake @job.VehicleModel &middot; @job.PlateNumber</div>
+                    <div class="job-meta">
+                        <i class="bi bi-geo-alt"></i> @job.ServiceBay &nbsp;·&nbsp;
+                        Check-in: @job.CheckInDateTime.ToString("h:mm tt") &nbsp;·&nbsp;
+                        Expected: @job.ExpectedReleaseDate.ToString("h:mm tt")
+                    </div>
+                    <div class="job-actions">
+                        <a asp-controller="ServiceJob" asp-action="Details" asp-route-id="@job.Id" class="btn btn-outline-secondary btn-sm">View</a>
+                        <a asp-controller="ServiceJob" asp-action="Edit" asp-route-id="@job.Id" class="btn btn-outline-secondary btn-sm">Edit</a>
+                        @if (job.Status != ServiceStatus.Released)
+                        {
+                            <a asp-controller="ServiceJob" asp-action="Release" asp-route-id="@job.Id" class="btn btn-primary btn-sm">Release</a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

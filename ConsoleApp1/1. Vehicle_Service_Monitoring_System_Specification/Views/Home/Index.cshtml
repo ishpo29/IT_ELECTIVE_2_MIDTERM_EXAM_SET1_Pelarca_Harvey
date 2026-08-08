@@ -1,0 +1,127 @@
+@model List<ServiceJob>
+@{
+    ViewData["Title"] = "Dashboard";
+    var firstName = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.GivenName)?.Value ?? "there";
+}
+
+<div class="page-header mb-4">
+    <h1>Good morning, @firstName</h1>
+    <p>Here's what's happening at your service center today.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl">
+        <div class="stat-card card-total">
+            <div class="stat-icon"><i class="bi bi-clipboard-data"></i></div>
+            <div class="stat-value">@ViewBag.TotalServices</div>
+            <div class="stat-label">Total Services</div>
+            <div class="stat-sub">All registered jobs</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="stat-card card-waiting">
+            <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+            <div class="stat-value">@ViewBag.Waiting</div>
+            <div class="stat-label">Waiting</div>
+            <div class="stat-sub">Vehicles in queue</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="stat-card card-inservice">
+            <div class="stat-icon"><i class="bi bi-tools"></i></div>
+            <div class="stat-value">@ViewBag.InService</div>
+            <div class="stat-label">In Service</div>
+            <div class="stat-sub">Currently being worked on</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-6 col-xl">
+        <div class="stat-card card-ready">
+            <div class="stat-icon"><i class="bi bi-bag-check"></i></div>
+            <div class="stat-value">@ViewBag.ReadyForRelease</div>
+            <div class="stat-label">Ready for Release</div>
+            <div class="stat-sub">Awaiting pickup</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-6 col-xl">
+        <div class="stat-card card-released">
+            <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+            <div class="stat-value">@ViewBag.Released</div>
+            <div class="stat-label">Released</div>
+            <div class="stat-sub">Completed today</div>
+        </div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="font-size:1.05rem; font-weight:700; margin:0;">Recent Service Jobs</h2>
+        <a asp-controller="ServiceJob" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-car-front"></i></div>
+            <h3>No Service Jobs Found</h3>
+            <p>There are currently no vehicles being monitored.</p>
+            <a asp-controller="ServiceJob" asp-action="Create" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-lg"></i> Register Vehicle
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive d-none d-md-block">
+            <table class="table ac-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Service #</th>
+                        <th>Customer</th>
+                        <th>Vehicle</th>
+                        <th>Plate #</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model)
+                    {
+                        <tr>
+                            <td class="text-service-number">@job.ServiceNumber</td>
+                            <td>@job.CustomerName</td>
+                            <td>@job.VehicleMake @job.VehicleModel</td>
+                            <td>@job.PlateNumber</td>
+                            <td>@await Html.PartialAsync("_StatusBadge", job.Status)</td>
+                            <td class="text-end">
+                                <a asp-controller="ServiceJob" asp-action="Details" asp-route-id="@job.Id" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-md-none">
+            @foreach (var job in Model)
+            {
+                <div class="job-card">
+                    <div class="job-card-header">
+                        <div>
+                            <div class="job-number">@job.ServiceNumber</div>
+                            <div class="job-customer">@job.CustomerName</div>
+                        </div>
+                        @await Html.PartialAsync("_StatusBadge", job.Status)
+                    </div>
+                    <div class="job-vehicle">@job.VehicleMake @job.VehicleModel &middot; @job.PlateNumber</div>
+                    <div class="job-actions">
+                        <a asp-controller="ServiceJob" asp-action="Details" asp-route-id="@job.Id" class="btn btn-outline-secondary btn-sm">View</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
