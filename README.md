@@ -1,1 +1,1 @@
-# it-elective-2-prelim-assignment-1
+# it-elective-2-midter-exam-1
